@@ -63,7 +63,8 @@
 
 - (void)start {
     NSError *error = nil;
-    if (![_udpSocket bindToPort:ssdpPort error:&error]) {
+    if (![_udpSocket bindToPort:0 error:&error])
+    {
         [self onError:error];
     }
     
@@ -106,7 +107,7 @@
 }
 
 - (void)udpSocketDidClose:(GCDAsyncUdpSocket *)sock withError:(NSError  * _Nullable)error {
-    CLLog(@"udpSocket关闭");
+    CLLog(@"udpSocket关闭 err %@", error);
 }
 
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data
@@ -179,6 +180,7 @@ withFilterContext:(nullable id)filterContext {
     if (!device){
         return;
     }
+    NSLog(@"%@",device.description);
     [self.deviceDictionary setObject:device forKey:usn];
     [self onChange];
 }

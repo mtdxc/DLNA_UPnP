@@ -8,15 +8,17 @@
 
 #import "CLControlViewController.h"
 
-static NSString *urlStr0 = @"http://v.tiaooo.com/ltQ3C0vts84B-UZ9BZNvTo9lUzWU";
-static NSString *urlStr1 = @"http://v.tiaooo.com/llbizosAzGhJPXC0H4AHLTGHl42W";
-static NSString *urlStr2 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8";
+static NSString *urlStr2 = @"https://janus.97kid.com/264.flv";
+static NSString *urlStr1 = @"https://janus.97kid.com/test.mp4";
+static NSString *urlStr0 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8";
 //static NSString *urlStr3 = @"http://222.73.132.145/vkphls.tc.qq.com/mp4/8/yZ_j6ME6N3hgRF2xg_m13zCxeLHcQzm9bVK0v_J-08OdcAVc0rmGCA/q4WgUBCu27O21hhzjGXkPCaHr1EkTFuUGbXKrNbjMACA-wleQI3oi3woUdjgP-BtBxW34UkmIxlQ_TkPGeqTLwghaijDM7oFlQwmCbieZPLUh33Q7f8eag/i0021mzabfm.p209.mp4/i0021mzabfm.p209.mp4.av.m3u8";
 
 @interface CLControlViewController ()<CLUPnPResponseDelegate>{
     BOOL _isPlaying;
     CLUPnPRenderer *render;
-    NSInteger _valume;
+    NSTimer* timer;
+    __weak IBOutlet UISlider *_volume;
+    __weak IBOutlet UISlider *_position;
 }
 
 @end
@@ -25,19 +27,20 @@ static NSString *urlStr2 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    _valume = 0;
-    
     render = [[CLUPnPRenderer alloc] initWithModel:self.model];
     render.delegate = self;
     [render setAVTransportURL:urlStr2];
     [render setNextAVTransportURI:urlStr1];
+    _volume.maximumValue = 100.f;
     _isPlaying = YES;
+    self->timer = nil;
 }
 
 #pragma mark -
 #pragma mark - 动作调用 -
 - (IBAction)closeAction:(id)sender {
     [render stop];
+    [self->timer invalidate];
 }
 
 - (IBAction)playOrPause:(id)sender {
@@ -55,6 +58,11 @@ static NSString *urlStr2 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3
 
 - (IBAction)seekTo11:(id)sender {
     [render seekToTarget:@"00:00:11" Unit:unitREL_TIME];
+}
+
+- (IBAction)onPositionChange:(id)sender {
+    NSLog(@"pos changed %f", _position.value);
+    [render seek:_position.value];
 }
 
 - (IBAction)pro:(id)sender {
@@ -80,11 +88,22 @@ static NSString *urlStr2 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3
 - (IBAction)addV:(id)sender {
     [render setVolumeWith:@"25"];
 }
+- (IBAction)onVolumeChange:(id)sender {
+    [render setVolumeWith: [NSString stringWithFormat:@"%f", _volume.value]];
+}
 
 #pragma mark -
 #pragma mark - CLUPnPResponseDelegate -
 - (void)upnpSetAVTransportURIResponse{
     [render play];
+    [render getVolume];
+    [render getPositionInfo];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->timer invalidate];
+        self->timer = nil;
+        self->timer = [NSTimer scheduledTimerWithTimeInterval:0.5f target:self selector:@selector(getPosition:) userInfo:nil repeats:YES];
+        [[NSRunLoop currentRunLoop] addTimer:self->timer forMode:NSRunLoopCommonModes];
+    });
 }
 
 - (void)upnpGetTransportInfoResponse:(CLUPnPTransportInfo *)info{
@@ -131,10 +150,17 @@ static NSString *urlStr2 = @"http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3
 
 - (void)upnpGetVolumeResponse:(NSString *)volume{
     NSLog(@"音量=%@", volume);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _volume.value = [volume floatValue];
+    });
 }
 
 - (void)upnpGetPositionInfoResponse:(CLUPnPAVPositionInfo *)info{
     NSLog(@"%f, === %f === %f", info.trackDuration, info.absTime, info.relTime);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _position.maximumValue = info.trackDuration;
+        _position.value = info.relTime;
+    });
 }
 
 - (void)upnpUndefinedResponse:(NSString *)resXML postXML:(NSString *)postXML{

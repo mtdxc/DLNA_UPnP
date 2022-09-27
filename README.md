@@ -103,7 +103,7 @@ c.在Build Phases->compile sources -> GDataXMLNode.m, ARC编译MRC加 -fno-objc-
 - (void)upnpNextResponse;                   // 下一个响应
 - (void)upnpSetVolumeResponse;              // 设置音量响应
 - (void)upnpSetNextAVTransportURIResponse;  // 设置下一个url响应
-- (void)upnpGetVolumeResponse:(NSString *)volume;                   // 获取音频信息
+- (void)upnpGetVolumeResponse:(NSString *)volume;                   // 获取音量信息
 - (void)upnpGetPositionInfoResponse:(CLUPnPAVPositionInfo *)info;   // 获取播放进度
 - (void)upnpUndefinedResponse:(NSString *)resXML postXML:(NSString *)postXML;                // 未定义的响应/错误
 

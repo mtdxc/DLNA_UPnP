@@ -16,7 +16,7 @@
 
  @param devices 设备数组
  */
-- (void)upnpSearchChangeWithResults:(NSArray <CLUPnPDevice *>*)devices;
+- (void)upnpSearchChangeWithResults:(NSArray<CLUPnPDevice*> *)devices;
 
 @optional
 /**
@@ -30,7 +30,7 @@
 
 @interface CLUPnPServer : NSObject
 
-@property (nonatomic, weak) id<CLUPnPServerDelegate>delegate;
+@property (nonatomic, weak) id<CLUPnPServerDelegate> delegate;
 
 + (instancetype)shareServer;
 

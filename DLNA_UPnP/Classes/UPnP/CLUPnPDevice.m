@@ -64,6 +64,10 @@
     }
 }
 
+- (NSString *)description{
+    NSString * string = [NSString stringWithFormat:@"\nuuid:%@\nlocation:%@\nURLHeader:%@\nfriendlyName:%@\nmodelName:%@\n",self.uuid,self.loaction,self.URLHeader,self.friendlyName,self.modelName];
+    return string;
+}
 @end
 
 @implementation CLServiceModel
